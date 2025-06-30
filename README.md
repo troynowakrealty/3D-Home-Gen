@@ -6,6 +6,7 @@ source activate blender
 pip install blendertoolbox
 pip install bpy
 ```
+The `bpy` package is not installed automatically and must be installed manually as shown above. Dependencies such as `numpy` will be pulled in when installing `blendertoolbox`.
 Please make sure you're using python 3.10, as Blender Python `bpy` is only compiled for that version of python.
 
 Once it is installed successfully, one can simply type in, e.g.,
