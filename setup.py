@@ -9,7 +9,7 @@ setup(
     author_email='hsuehtil@gmail.com',
     license='Apache 2.0',
     packages=['blendertoolbox'],
-    install_requires=[ ],
+    install_requires=['numpy'],
     classifiers=[
         'Programming Language :: Python :: 3.10',
     ],
