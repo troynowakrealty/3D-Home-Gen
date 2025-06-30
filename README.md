@@ -4,9 +4,15 @@ To use this toolbox, please make sure to install [Blender](https://www.blender.o
 conda create -n blender python=3.10
 source activate blender
 pip install blendertoolbox
-pip install bpy
 ```
 Please make sure you're using python 3.10, as Blender Python `bpy` is only compiled for that version of python.
+
+NumPy will be installed automatically as part of `blendertoolbox`'s
+dependencies. The Blender Python API (`bpy`) must be installed separately to
+match your Blender version:
+```
+pip install bpy
+```
 
 Once it is installed successfully, one can simply type in, e.g.,
 ```
