@@ -30,8 +30,9 @@ jobs:
           pip install sdist_check 
           python setup.py sdist_check
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
+        name: sdist
         path: dist/*.tar.gz
 
   build_wheels:
@@ -171,11 +172,12 @@ jobs:
       #     python -m delvewheel repair *.whl
 
       # Upload binaries to github
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: wheel-${{ matrix.os.cibw-arch }}-${{ matrix.cpversion }}
           path: |
-            ./dist/*.whl 
-            ./dist/*.tar.gz 
+            ./dist/*.whl
+            ./dist/*.tar.gz
 
   # # Push the resulting binaries to pypi on a tag starting with 'v'
   upload_pypi:
@@ -186,10 +188,10 @@ jobs:
     # alternatively, to publish when a GitHub Release is created, use the following rule:
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
           path: dist
+          merge-multiple: true
 
       - uses: pypa/gh-action-pypi-publish@v1.5.0
         with:
