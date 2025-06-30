@@ -30,7 +30,7 @@ jobs:
           pip install sdist_check 
           python setup.py sdist_check
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         path: dist/*.tar.gz
 
@@ -171,7 +171,7 @@ jobs:
       #     python -m delvewheel repair *.whl
 
       # Upload binaries to github
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: |
             ./dist/*.whl 
@@ -186,7 +186,7 @@ jobs:
     # alternatively, to publish when a GitHub Release is created, use the following rule:
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: artifact
           path: dist
