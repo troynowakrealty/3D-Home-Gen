@@ -1,5 +1,5 @@
 
-__version__ = '0.0.2'
+__version__ = '0.0.6'
 __author__ = 'Hsueh-Ti Derek Liu'
 __credits__ = 'Hsueh-Ti Derek Liu'
 
