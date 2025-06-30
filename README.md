@@ -15,6 +15,12 @@ python template.py
 ```
 to render the mesh.
 
+Alternatively, you can render a mesh directly from the command line:
+```
+bt-render demos/test.obj -o output.png
+```
+This will save the rendering to `output.png`.
+
 If for some reasons, `pip` has difficulty installing the packages. One can still fall back to the old way: downloading the toolbox and import the module `blendertoolbox` manually. This will require some changes to the demo scripts. After the modifications, you would need to call the script with blender background mode as
 ```
 blender -b -P template.py
