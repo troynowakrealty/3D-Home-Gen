@@ -9,6 +9,8 @@ setup(
     author_email='hsuehtil@gmail.com',
     license='Apache 2.0',
     packages=['blendertoolbox'],
+    install_requires=['numpy'],
+    entry_points={'console_scripts': ['bt-render=blendertoolbox.cli:main']},
 
     classifiers=[
         'Programming Language :: Python :: 3.10',
