@@ -1,0 +1,114 @@
+[
+  {
+    "type": "rectangle",
+    "name": "Lot1",
+    "x": 50,
+    "y": 50,
+    "width": 184,
+    "height": 496
+  },
+  {
+    "type": "rectangle",
+    "name": "FrontUnit1",
+    "x": 82,
+    "y": 362,
+    "width": 132,
+    "height": 112
+  },
+  {
+    "type": "rectangle",
+    "name": "GarageADU1",
+    "x": 82.0,
+    "y": 138,
+    "width": 120,
+    "height": 80
+  },
+  {
+    "type": "rectangle",
+    "name": "Parking1_1",
+    "x": 86.0,
+    "y": 50,
+    "width": 36,
+    "height": 80
+  },
+  {
+    "type": "rectangle",
+    "name": "Parking1_2",
+    "x": 122.0,
+    "y": 50,
+    "width": 36,
+    "height": 80
+  },
+  {
+    "type": "rectangle",
+    "name": "Parking1_3",
+    "x": 158.0,
+    "y": 50,
+    "width": 36,
+    "height": 80
+  },
+  {
+    "type": "rectangle",
+    "name": "TrashPad1",
+    "x": 194.0,
+    "y": 50,
+    "width": 16,
+    "height": 36
+  },
+  {
+    "type": "rectangle",
+    "name": "Lot2",
+    "x": 234,
+    "y": 50,
+    "width": 183.92,
+    "height": 496
+  },
+  {
+    "type": "rectangle",
+    "name": "FrontUnit2",
+    "x": 254,
+    "y": 362,
+    "width": 132,
+    "height": 112
+  },
+  {
+    "type": "rectangle",
+    "name": "GarageADU2",
+    "x": 265.96,
+    "y": 138,
+    "width": 120,
+    "height": 80
+  },
+  {
+    "type": "rectangle",
+    "name": "Parking2_1",
+    "x": 257.96,
+    "y": 50,
+    "width": 36,
+    "height": 80
+  },
+  {
+    "type": "rectangle",
+    "name": "Parking2_2",
+    "x": 293.96,
+    "y": 50,
+    "width": 36,
+    "height": 80
+  },
+  {
+    "type": "rectangle",
+    "name": "Parking2_3",
+    "x": 329.96,
+    "y": 50,
+    "width": 36,
+    "height": 80
+  },
+  {
+    "type": "rectangle",
+    "name": "TrashPad2",
+    "x": 365.96,
+    "y": 50,
+    "width": 16,
+    "height": 36
+  }
+]
