@@ -28,8 +28,8 @@ adu_depth = 20
 parking_width = 9
 parking_depth = 20
 parking_count = 3
-trash_width = 6
-trash_depth = 20
+trash_width = 4
+trash_depth = 9
 
 # Calculated constants
 canvas_width = sum(lot_widths) * SCALE + MARGIN * 2
@@ -185,22 +185,32 @@ for idx, origin in enumerate([lot1_origin, lot2_origin], start=1):
 
     # Parking and trash behind ADU
     parking_y = lot_y
-    parking_x = lot_x + ft(lot_left_setback)
+    interior_width = lot_width - lot_left_setback - lot_right_setback
+    group_width = parking_width * parking_count + trash_width
+    parking_x = lot_x + ft(lot_left_setback + (interior_width - group_width) / 2)
+
     for p in range(parking_count):
         px = parking_x + ft(p * parking_width)
         rect = dwg.rect((px, parking_y), (ft(parking_width), ft(parking_depth)), **parking_style)
         dwg.add(rect)
-        dwg.add(dwg.text(f'Parking {p+1}', insert=(px + ft(parking_width/2), parking_y + ft(parking_depth/2)), text_anchor='middle', alignment_baseline='middle', font_size=10, font_family='sans-serif'))
+        dwg.add(dwg.text('P', insert=(px + ft(parking_width/2), parking_y + ft(parking_depth/2)), text_anchor='middle', alignment_baseline='middle', font_size=10, font_family='sans-serif'))
         layout.append({'type': 'rectangle', 'name': f'Parking{idx}_{p+1}', 'x': px, 'y': parking_y, 'width': ft(parking_width), 'height': ft(parking_depth)})
+
+        if p < parking_count:
+            divider_x = px + ft(parking_width)
+            dwg.add(dwg.line((divider_x, parking_y), (divider_x, parking_y + ft(parking_depth)), stroke='black', stroke_width=1))
 
     trash_x = parking_x + ft(parking_width * parking_count)
     trash_rect = dwg.rect((trash_x, parking_y), (ft(trash_width), ft(trash_depth)), **trash_style)
     dwg.add(trash_rect)
-    dwg.add(dwg.text('Trash Pad', insert=(trash_x + ft(trash_width/2), parking_y + ft(trash_depth/2)), text_anchor='middle', alignment_baseline='middle', font_size=10, font_family='sans-serif'))
+    dwg.add(dwg.text('T', insert=(trash_x + ft(trash_width/2), parking_y + ft(trash_depth/2)), text_anchor='middle', alignment_baseline='middle', font_size=10, font_family='sans-serif'))
     layout.append({'type': 'rectangle', 'name': f'TrashPad{idx}', 'x': trash_x, 'y': parking_y, 'width': ft(trash_width), 'height': ft(trash_depth)})
 
+    divider_x = trash_x + ft(trash_width)
+    dwg.add(dwg.line((divider_x, parking_y), (divider_x, parking_y + ft(parking_depth)), stroke='black', stroke_width=1))
+
     # Parking dimension line
-    dim_h(parking_x, trash_x + ft(trash_width), parking_y - 10, f"{parking_width*parking_count + trash_width}'")
+    dim_h(parking_x, trash_x + ft(trash_width), parking_y - 10, f"{group_width}'")
     dim_v(parking_y, parking_y + ft(parking_depth), parking_x - 10, f"{parking_depth}'")
 
 total_lot_width = ft(sum(lot_widths))
@@ -209,7 +219,7 @@ total_lot_width = ft(sum(lot_widths))
 alley_top = MARGIN - ft(16)
 dwg.add(dwg.rect((MARGIN, alley_top), (total_lot_width, ft(16)), stroke='gray', fill='none', stroke_width=1))
 dwg.add(dwg.text("Alley \u2013 16' wide", insert=(MARGIN + total_lot_width/2, alley_top + ft(8)), text_anchor='middle', font_size=12, font_family='sans-serif'))
-dim_v(alley_top, MARGIN, MARGIN + total_lot_width + 20, "16'")
+dim_v(alley_top, MARGIN, MARGIN + total_lot_width/2, "16'")
 
 street_bottom = MARGIN + ft(lot_depth)
 dwg.add(dwg.rect((MARGIN, street_bottom), (total_lot_width, ft(60)), stroke='gray', fill='none', stroke_width=1))
@@ -222,7 +232,7 @@ dwg.add(dwg.text("27th St S \u2013 50' wide", insert=(street_right + ft(25), MAR
 dim_h(street_right, street_right + ft(50), MARGIN + ft(lot_depth) + 20, "50'")
 
 # Legend
-legend_x = MARGIN
+legend_x = canvas_width - MARGIN - 200
 legend_y = canvas_height - MARGIN + 20
 dwg.add(dwg.rect((legend_x, legend_y), (20, 12), **building_style))
 dwg.add(dwg.text('Front Unit', insert=(legend_x + 25, legend_y + 10), font_size=10, font_family='sans-serif'))
@@ -232,6 +242,13 @@ dwg.add(dwg.rect((legend_x, legend_y + 36), (20, 12), **parking_style))
 dwg.add(dwg.text('Parking', insert=(legend_x + 25, legend_y + 46), font_size=10, font_family='sans-serif'))
 dwg.add(dwg.rect((legend_x, legend_y + 54), (20, 12), **trash_style))
 dwg.add(dwg.text('Trash', insert=(legend_x + 25, legend_y + 64), font_size=10, font_family='sans-serif'))
+dwg.add(dwg.text("P = Parking Stall (9' x 20')", insert=(legend_x, legend_y + 80), font_size=10, font_family='sans-serif'))
+dwg.add(dwg.text("T = Trash Pad (4' x 9')", insert=(legend_x, legend_y + 92), font_size=10, font_family='sans-serif'))
+dwg.add(dwg.text("F = Front Unit (2-story)", insert=(legend_x, legend_y + 104), font_size=10, font_family='sans-serif'))
+dwg.add(dwg.text("A = Garage/ADU (1 bed over garage)", insert=(legend_x, legend_y + 116), font_size=10, font_family='sans-serif'))
+dwg.add(dwg.text("D = Driveway", insert=(legend_x, legend_y + 128), font_size=10, font_family='sans-serif'))
+dwg.add(dwg.text("Dashed Line = Setback", insert=(legend_x, legend_y + 140), font_size=10, font_family='sans-serif'))
+dwg.add(dwg.text("Solid Line = Structure", insert=(legend_x, legend_y + 152), font_size=10, font_family='sans-serif'))
 
 # Save SVG
 dwg.save()
