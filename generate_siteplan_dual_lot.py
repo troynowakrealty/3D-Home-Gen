@@ -1,5 +1,7 @@
 import svgwrite
 import json
+from pathlib import Path
+from siteplan.geometry import load_layout, Rectangle
 
 SCALE = 4  # pixels per foot
 MARGIN = 50
@@ -19,6 +21,9 @@ lot1_right_setback = 5
 lot2_left_setback = 5
 lot2_right_setback = 8
 
+# Load previous layout if available
+PREV_LAYOUT = load_layout('output/layout.json')
+
 front_building_width = 33
 front_building_depth = 28
 
@@ -28,8 +33,8 @@ adu_depth = 20
 parking_width = 9
 parking_depth = 20
 parking_count = 3
-trash_width = 4
-trash_depth = 9
+trash_width = 6
+trash_depth = 20
 
 # Calculated constants
 canvas_width = sum(lot_widths) * SCALE + MARGIN * 2
@@ -74,6 +79,12 @@ trash_style = {
     'stroke_dasharray': '2,2',
     'fill': 'none'
 }
+walkway_style = {
+    'stroke': 'black',
+    'stroke_width': 1,
+    'stroke_dasharray': '4,2',
+    'fill': 'none'
+}
 
 # Dimension arrow marker
 arrow_marker = svgwrite.container.Marker(insert=(5,3), size=(6,6), orient='auto')
@@ -94,7 +105,29 @@ def dim_v(y1, y2, x, text):
                      transform=f"rotate(-90,{x + 5},{(y1 + y2) / 2})",
                      text_anchor='middle', font_family='sans-serif'))
 
+def add_bg_text(text, insert, font_size=10, anchor='middle'):
+    x, y = insert
+    padding = 2
+    width = len(text) * font_size * 0.6
+    height = font_size + 4
+    if anchor == 'middle':
+        x_rect = x - width / 2 - padding
+    else:
+        x_rect = x - padding
+    dwg.add(dwg.rect((x_rect, y - height + padding),
+                     (width + padding * 2, height), fill='white'))
+    dwg.add(dwg.text(text, insert=insert, text_anchor=anchor,
+                     font_size=font_size, font_family='sans-serif'))
+
 layout = []
+log_steps = []
+step_num = 1
+
+def save_step(message):
+    global step_num
+    dwg.saveas(f'output/siteplan_step{step_num}.svg')
+    log_steps.append(f'Step {step_num}: {message}')
+    step_num += 1
 
 # Helper to convert feet to pixels
 ft = lambda x: x * SCALE
@@ -170,10 +203,9 @@ for idx, origin in enumerate([lot1_origin, lot2_origin], start=1):
     dwg.add(dwg.line((divider_x, bld_y), (divider_x, bld_y + ft(front_building_depth)), stroke='black', stroke_width=1))
 
     labels = ['Unit 1', 'Unit 2'] if idx == 1 else ['Unit 3', 'Unit 4']
-    dwg.add(dwg.text(labels[0], insert=(bld_x + ft(front_building_width / 4), bld_y + ft(front_building_depth/2)),
-                     text_anchor='middle', alignment_baseline='middle', font_size=12, font_family='sans-serif'))
-    dwg.add(dwg.text(labels[1], insert=(bld_x + ft(3 * front_building_width / 4), bld_y + ft(front_building_depth/2)),
-                     text_anchor='middle', alignment_baseline='middle', font_size=12, font_family='sans-serif'))
+    add_bg_text('Front Duplex \u2013 2 Story', (bld_x + ft(front_building_width/2), bld_y + ft(front_building_depth/2)), font_size=10)
+    add_bg_text(labels[0], (bld_x + ft(front_building_width / 4), bld_y + ft(front_building_depth/2)), font_size=8)
+    add_bg_text(labels[1], (bld_x + ft(3 * front_building_width / 4), bld_y + ft(front_building_depth/2)), font_size=8)
 
     layout.append({'type': 'rectangle', 'name': f'FrontUnit{idx}', 'x': bld_x, 'y': bld_y, 'width': ft(front_building_width), 'height': ft(front_building_depth)})
 
@@ -186,7 +218,7 @@ for idx, origin in enumerate([lot1_origin, lot2_origin], start=1):
     adu_y = lot_y + ft(rear_setback)
     adu_rect = dwg.rect((adu_x, adu_y), (ft(adu_width), ft(adu_depth)), **building_style)
     dwg.add(adu_rect)
-    dwg.add(dwg.text('Garage/ADU', insert=(adu_x + ft(adu_width/2), adu_y + ft(adu_depth/2)), text_anchor='middle', alignment_baseline='middle', font_size=12, font_family='sans-serif'))
+    add_bg_text('Garage/ADU \u2013 2 Story', (adu_x + ft(adu_width/2), adu_y + ft(adu_depth/2)), font_size=10)
 
     layout.append({'type': 'rectangle', 'name': f'GarageADU{idx}', 'x': adu_x, 'y': adu_y, 'width': ft(adu_width), 'height': ft(adu_depth)})
 
@@ -209,7 +241,9 @@ for idx, origin in enumerate([lot1_origin, lot2_origin], start=1):
         px = parking_x + ft(p * parking_width)
         rect = dwg.rect((px, parking_y), (ft(parking_width), ft(parking_depth)), **parking_style)
         dwg.add(rect)
-        dwg.add(dwg.text('P', insert=(px + ft(parking_width/2), parking_y + 12), text_anchor='middle', font_size=10, font_family='sans-serif'))
+        add_bg_text('P', (px + ft(parking_width/2), parking_y + ft(parking_depth/2)), font_size=8)
+        if p == 0:
+            dim_h(px, px + ft(parking_width), parking_y + ft(parking_depth) + 12, "9'")
         layout.append({'type': 'rectangle', 'name': f'Parking{idx}_{p+1}', 'x': px, 'y': parking_y, 'width': ft(parking_width), 'height': ft(parking_depth)})
 
         if p < parking_count:
@@ -219,11 +253,20 @@ for idx, origin in enumerate([lot1_origin, lot2_origin], start=1):
     trash_x = parking_x + ft(parking_width * parking_count)
     trash_rect = dwg.rect((trash_x, parking_y), (ft(trash_width), ft(trash_depth)), **trash_style)
     dwg.add(trash_rect)
-    dwg.add(dwg.text('T', insert=(trash_x + ft(trash_width/2), parking_y + 12), text_anchor='middle', font_size=10, font_family='sans-serif'))
+    add_bg_text('T', (trash_x + ft(trash_width/2), parking_y + ft(trash_depth/2)), font_size=8)
+    dim_h(trash_x, trash_x + ft(trash_width), parking_y + ft(trash_depth) + 12, "6'")
     layout.append({'type': 'rectangle', 'name': f'TrashPad{idx}', 'x': trash_x, 'y': parking_y, 'width': ft(trash_width), 'height': ft(trash_depth)})
 
     divider_x = trash_x + ft(trash_width)
     dwg.add(dwg.line((divider_x, parking_y), (divider_x, parking_y + ft(parking_depth)), stroke='black', stroke_width=1))
+    dim_v(parking_y, parking_y + ft(parking_depth), trash_x + ft(trash_width) + 12, "20'")
+
+    # Walkway from ADU to alley
+    walk_x = adu_x + ft(adu_width/2 - 1)
+    walk_y = parking_y
+    walk_h = adu_y - parking_y
+    dwg.add(dwg.rect((walk_x, walk_y), (ft(2), walk_h), **walkway_style))
+    dim_h(walk_x, walk_x + ft(2), walk_y + walk_h / 2, "2'")
 
     # Parking dimension line
     dim_h(parking_x, trash_x + ft(trash_width), parking_y - 10, f"{group_width}'")
@@ -231,20 +274,22 @@ for idx, origin in enumerate([lot1_origin, lot2_origin], start=1):
 
 total_lot_width = ft(sum(lot_widths))
 
+save_step('Base lots, structures, and parking drawn')
+
 # Surrounding streets
 alley_top = MARGIN - ft(16)
 dwg.add(dwg.rect((MARGIN, alley_top), (total_lot_width, ft(16)), stroke='gray', fill='none', stroke_width=1))
-dwg.add(dwg.text("Alley", insert=(MARGIN + total_lot_width/2, alley_top + ft(8)), text_anchor='middle', font_size=12, font_family='sans-serif'))
+dwg.add(dwg.text("Alley (South)", insert=(MARGIN + total_lot_width/2, alley_top + ft(8)), text_anchor='middle', font_size=12, font_family='sans-serif'))
 dim_v(alley_top, MARGIN, MARGIN + total_lot_width/2, "16'")
 
 street_bottom = MARGIN + ft(lot_depth)
 dwg.add(dwg.rect((MARGIN, street_bottom), (total_lot_width, ft(60)), stroke='gray', fill='none', stroke_width=1))
-dwg.add(dwg.text("22nd Ave S", insert=(MARGIN + total_lot_width/2, street_bottom + ft(30)), text_anchor='middle', font_size=12, font_family='sans-serif'))
+dwg.add(dwg.text("22nd Ave S (North)", insert=(MARGIN + total_lot_width/2, street_bottom + ft(30)), text_anchor='middle', font_size=12, font_family='sans-serif'))
 dim_v(street_bottom, street_bottom + ft(60), MARGIN + total_lot_width + 20, "60'")
 
 street_right = MARGIN + total_lot_width
 dwg.add(dwg.rect((street_right, MARGIN), (ft(50), ft(lot_depth)), stroke='gray', fill='none', stroke_width=1))
-dwg.add(dwg.text("30th Street South", insert=(street_right + ft(25), MARGIN + ft(lot_depth/2)), text_anchor='middle', font_size=12, font_family='sans-serif', transform=f"rotate(-90,{street_right + ft(25)},{MARGIN + ft(lot_depth/2)})"))
+dwg.add(dwg.text("Side Street (East)", insert=(street_right + ft(25), MARGIN + ft(lot_depth/2)), text_anchor='middle', font_size=12, font_family='sans-serif', transform=f"rotate(-90,{street_right + ft(25)},{MARGIN + ft(lot_depth/2)})"))
 dim_h(street_right, street_right + ft(50), MARGIN + ft(lot_depth) + 20, "50'")
 
 # Overall lot depth dimension just outside the second lot
@@ -255,25 +300,30 @@ dim_v(lot_top, lot_bottom, overall_dim_x, "124'")
 legend_x = lot_right - 120
 legend_y = lot_bottom + 40
 dwg.add(dwg.rect((legend_x, legend_y), (20, 12), **building_style))
-dwg.add(dwg.text('Front Unit', insert=(legend_x + 25, legend_y + 10), font_size=10, font_family='sans-serif'))
+dwg.add(dwg.text('Front Duplex', insert=(legend_x + 25, legend_y + 10), font_size=10, font_family='sans-serif'))
 dwg.add(dwg.rect((legend_x, legend_y + 18), (20, 12), **building_style))
 dwg.add(dwg.text('Garage/ADU', insert=(legend_x + 25, legend_y + 28), font_size=10, font_family='sans-serif'))
 dwg.add(dwg.rect((legend_x, legend_y + 36), (20, 12), **parking_style))
 dwg.add(dwg.text('Parking', insert=(legend_x + 25, legend_y + 46), font_size=10, font_family='sans-serif'))
 dwg.add(dwg.rect((legend_x, legend_y + 54), (20, 12), **trash_style))
-dwg.add(dwg.text('Trash', insert=(legend_x + 25, legend_y + 64), font_size=10, font_family='sans-serif'))
+dwg.add(dwg.text('Trash Pad', insert=(legend_x + 25, legend_y + 64), font_size=10, font_family='sans-serif'))
 dwg.add(dwg.text("P = Parking Stall (9' x 20')", insert=(legend_x, legend_y + 80), font_size=10, font_family='sans-serif'))
-dwg.add(dwg.text("T = Trash Pad (4' x 9')", insert=(legend_x, legend_y + 92), font_size=10, font_family='sans-serif'))
-dwg.add(dwg.text("F = Front Unit (2-story)", insert=(legend_x, legend_y + 104), font_size=10, font_family='sans-serif'))
+dwg.add(dwg.text("T = Trash Pad (6' x 20')", insert=(legend_x, legend_y + 92), font_size=10, font_family='sans-serif'))
+dwg.add(dwg.text("F = Front Duplex (2-story)", insert=(legend_x, legend_y + 104), font_size=10, font_family='sans-serif'))
 dwg.add(dwg.text("A = Garage/ADU (1 bed over garage)", insert=(legend_x, legend_y + 116), font_size=10, font_family='sans-serif'))
 dwg.add(dwg.text("D = Driveway", insert=(legend_x, legend_y + 128), font_size=10, font_family='sans-serif'))
 dwg.add(dwg.text("Dashed Line = Setback", insert=(legend_x, legend_y + 140), font_size=10, font_family='sans-serif'))
 dwg.add(dwg.text("Solid Line = Structure", insert=(legend_x, legend_y + 152), font_size=10, font_family='sans-serif'))
 
+save_step('Added streets, dimensions and legend')
+
 # Save SVG
-dwg.save()
+dwg.saveas('output/siteplan_dual_lot.svg')
+save_step('Final exported plan')
 
 with open('output/layout.json', 'w') as f:
     json.dump(layout, f, indent=2)
 
-print(json.dumps(layout, indent=2))
+with open('output/layout.txt', 'w') as f:
+    for line in log_steps:
+        f.write(line + '\n')
