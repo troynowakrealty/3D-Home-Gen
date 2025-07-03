@@ -35,7 +35,10 @@ trash_depth = 9
 canvas_width = sum(lot_widths) * SCALE + MARGIN * 2
 canvas_height = lot_depth * SCALE + MARGIN * 2
 
+
 dwg = svgwrite.Drawing('output/siteplan_dual_lot.svg', size=(canvas_width, canvas_height))
+# Ensure exports have a white background instead of transparent
+dwg.add(dwg.rect(insert=(0, 0), size=('100%', '100%'), fill='white'))
 
 # Styles
 lot_style = {
@@ -96,6 +99,11 @@ layout = []
 # Helper to convert feet to pixels
 ft = lambda x: x * SCALE
 
+lot_left = MARGIN
+lot_right = lot_left + ft(sum(lot_widths))
+lot_top = MARGIN
+lot_bottom = lot_top + ft(lot_depth)
+
 # Draw north arrow
 arrow_start = (canvas_width - MARGIN, MARGIN + 40)
 arrow_end = (canvas_width - MARGIN, MARGIN)
@@ -105,7 +113,7 @@ dwg.add(dwg.polygon([
     (canvas_width - MARGIN + 5, MARGIN + 5),
     (canvas_width - MARGIN, MARGIN - 5)
 ], fill='black'))
-dwg.add(dwg.text('N', insert=(canvas_width - MARGIN - 10, MARGIN + 15), font_size=12, font_weight='bold'))
+dwg.add(dwg.text('N', insert=(canvas_width - MARGIN, MARGIN + 15), font_size=12, font_weight='bold'))
 
 # Starting x positions for each lot
 lot1_origin = (MARGIN, MARGIN)
@@ -122,7 +130,7 @@ for idx, origin in enumerate([lot1_origin, lot2_origin], start=1):
     dwg.add(lot_rect)
     layout.append({'type': 'rectangle', 'name': f'Lot{idx}', 'x': lot_x, 'y': lot_y, 'width': ft(lot_width), 'height': ft(lot_depth)})
 
-    dwg.add(dwg.text(f'Lot {idx}', insert=(lot_x + 5, lot_y + ft(lot_depth) - 5), font_size=12, font_family='sans-serif'))
+    dwg.add(dwg.text(f'Lot {idx}', insert=(lot_x + 5, lot_y + ft(lot_depth) + 30), font_size=12, font_family='sans-serif'))
 
     # Lot dimensions
     dim_h(lot_x, lot_x + ft(lot_width), lot_y + ft(lot_depth) + 20, f"{lot_width}'")
@@ -193,7 +201,7 @@ for idx, origin in enumerate([lot1_origin, lot2_origin], start=1):
         px = parking_x + ft(p * parking_width)
         rect = dwg.rect((px, parking_y), (ft(parking_width), ft(parking_depth)), **parking_style)
         dwg.add(rect)
-        dwg.add(dwg.text('P', insert=(px + ft(parking_width/2), parking_y + ft(parking_depth/2)), text_anchor='middle', alignment_baseline='middle', font_size=10, font_family='sans-serif'))
+        dwg.add(dwg.text('P', insert=(px + ft(parking_width/2), parking_y + 12), text_anchor='middle', font_size=10, font_family='sans-serif'))
         layout.append({'type': 'rectangle', 'name': f'Parking{idx}_{p+1}', 'x': px, 'y': parking_y, 'width': ft(parking_width), 'height': ft(parking_depth)})
 
         if p < parking_count:
@@ -203,7 +211,7 @@ for idx, origin in enumerate([lot1_origin, lot2_origin], start=1):
     trash_x = parking_x + ft(parking_width * parking_count)
     trash_rect = dwg.rect((trash_x, parking_y), (ft(trash_width), ft(trash_depth)), **trash_style)
     dwg.add(trash_rect)
-    dwg.add(dwg.text('T', insert=(trash_x + ft(trash_width/2), parking_y + ft(trash_depth/2)), text_anchor='middle', alignment_baseline='middle', font_size=10, font_family='sans-serif'))
+    dwg.add(dwg.text('T', insert=(trash_x + ft(trash_width/2), parking_y + 12), text_anchor='middle', font_size=10, font_family='sans-serif'))
     layout.append({'type': 'rectangle', 'name': f'TrashPad{idx}', 'x': trash_x, 'y': parking_y, 'width': ft(trash_width), 'height': ft(trash_depth)})
 
     divider_x = trash_x + ft(trash_width)
@@ -231,9 +239,13 @@ dwg.add(dwg.rect((street_right, MARGIN), (ft(50), ft(lot_depth)), stroke='gray',
 dwg.add(dwg.text("27th St S \u2013 50' wide", insert=(street_right + ft(25), MARGIN + ft(lot_depth/2)), text_anchor='middle', font_size=12, font_family='sans-serif', transform=f"rotate(-90,{street_right + ft(25)},{MARGIN + ft(lot_depth/2)})"))
 dim_h(street_right, street_right + ft(50), MARGIN + ft(lot_depth) + 20, "50'")
 
+# Overall lot depth dimension just outside the second lot
+overall_dim_x = lot_right + 7  # space for label at +12
+dim_v(lot_top, lot_bottom, overall_dim_x, "124'")
+
 # Legend
-legend_x = canvas_width - MARGIN - 200
-legend_y = canvas_height - MARGIN + 20
+legend_x = lot_right - 120
+legend_y = lot_bottom + 40
 dwg.add(dwg.rect((legend_x, legend_y), (20, 12), **building_style))
 dwg.add(dwg.text('Front Unit', insert=(legend_x + 25, legend_y + 10), font_size=10, font_family='sans-serif'))
 dwg.add(dwg.rect((legend_x, legend_y + 18), (20, 12), **building_style))
