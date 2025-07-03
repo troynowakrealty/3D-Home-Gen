@@ -234,17 +234,17 @@ total_lot_width = ft(sum(lot_widths))
 # Surrounding streets
 alley_top = MARGIN - ft(16)
 dwg.add(dwg.rect((MARGIN, alley_top), (total_lot_width, ft(16)), stroke='gray', fill='none', stroke_width=1))
-dwg.add(dwg.text("Alley \u2013 16' wide", insert=(MARGIN + total_lot_width/2, alley_top + ft(8)), text_anchor='middle', font_size=12, font_family='sans-serif'))
+dwg.add(dwg.text("Alley", insert=(MARGIN + total_lot_width/2, alley_top + ft(8)), text_anchor='middle', font_size=12, font_family='sans-serif'))
 dim_v(alley_top, MARGIN, MARGIN + total_lot_width/2, "16'")
 
 street_bottom = MARGIN + ft(lot_depth)
 dwg.add(dwg.rect((MARGIN, street_bottom), (total_lot_width, ft(60)), stroke='gray', fill='none', stroke_width=1))
-dwg.add(dwg.text("22nd Ave S \u2013 60' wide", insert=(MARGIN + total_lot_width/2, street_bottom + ft(30)), text_anchor='middle', font_size=12, font_family='sans-serif'))
+dwg.add(dwg.text("22nd Ave S", insert=(MARGIN + total_lot_width/2, street_bottom + ft(30)), text_anchor='middle', font_size=12, font_family='sans-serif'))
 dim_v(street_bottom, street_bottom + ft(60), MARGIN + total_lot_width + 20, "60'")
 
 street_right = MARGIN + total_lot_width
 dwg.add(dwg.rect((street_right, MARGIN), (ft(50), ft(lot_depth)), stroke='gray', fill='none', stroke_width=1))
-dwg.add(dwg.text("27th St S \u2013 50' wide", insert=(street_right + ft(25), MARGIN + ft(lot_depth/2)), text_anchor='middle', font_size=12, font_family='sans-serif', transform=f"rotate(-90,{street_right + ft(25)},{MARGIN + ft(lot_depth/2)})"))
+dwg.add(dwg.text("30th Street South", insert=(street_right + ft(25), MARGIN + ft(lot_depth/2)), text_anchor='middle', font_size=12, font_family='sans-serif', transform=f"rotate(-90,{street_right + ft(25)},{MARGIN + ft(lot_depth/2)})"))
 dim_h(street_right, street_right + ft(50), MARGIN + ft(lot_depth) + 20, "50'")
 
 # Overall lot depth dimension just outside the second lot
