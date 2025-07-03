@@ -165,7 +165,15 @@ for idx, origin in enumerate([lot1_origin, lot2_origin], start=1):
     bld_y = lot_y + ft(lot_depth - front_setback - front_building_depth)
     front_rect = dwg.rect((bld_x, bld_y), (ft(front_building_width), ft(front_building_depth)), **building_style)
     dwg.add(front_rect)
-    dwg.add(dwg.text('Front Unit', insert=(bld_x + ft(front_building_width/2), bld_y + ft(front_building_depth/2)), text_anchor='middle', alignment_baseline='middle', font_size=12, font_family='sans-serif'))
+
+    divider_x = bld_x + ft(front_building_width / 2)
+    dwg.add(dwg.line((divider_x, bld_y), (divider_x, bld_y + ft(front_building_depth)), stroke='black', stroke_width=1))
+
+    labels = ['Unit 1', 'Unit 2'] if idx == 1 else ['Unit 3', 'Unit 4']
+    dwg.add(dwg.text(labels[0], insert=(bld_x + ft(front_building_width / 4), bld_y + ft(front_building_depth/2)),
+                     text_anchor='middle', alignment_baseline='middle', font_size=12, font_family='sans-serif'))
+    dwg.add(dwg.text(labels[1], insert=(bld_x + ft(3 * front_building_width / 4), bld_y + ft(front_building_depth/2)),
+                     text_anchor='middle', alignment_baseline='middle', font_size=12, font_family='sans-serif'))
 
     layout.append({'type': 'rectangle', 'name': f'FrontUnit{idx}', 'x': bld_x, 'y': bld_y, 'width': ft(front_building_width), 'height': ft(front_building_depth)})
 
